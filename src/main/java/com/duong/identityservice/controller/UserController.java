@@ -7,6 +7,8 @@ import com.duong.identityservice.dto.response.UserResponse;
 import com.duong.identityservice.entity.User;
 import com.duong.identityservice.service.UserService;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -17,13 +19,16 @@ import java.util.List;
 @RequestMapping("/users")
 public class UserController {
 
+    private static final Logger log = LoggerFactory.getLogger(UserController.class);
     @Autowired
     private UserService userService;
 
     @PostMapping
     ApiResponse<UserResponse> createUser(@RequestBody @Valid UserCreationRequest userReq){
+        log.info("Controller: Creating user ");
         ApiResponse<UserResponse> apiResponse= new ApiResponse<>();
-        apiResponse.setResult(userService.createRequest(userReq));
+        apiResponse.setResult(userService.creatUser(userReq));
+        apiResponse.setCode(1000);
         return apiResponse;
     }
 
