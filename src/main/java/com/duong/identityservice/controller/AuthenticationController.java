@@ -1,9 +1,6 @@
 package com.duong.identityservice.controller;
 
-import com.duong.identityservice.dto.request.ApiResponse;
-import com.duong.identityservice.dto.request.AuthenticationRequest;
-import com.duong.identityservice.dto.request.IntrospectRequest;
-import com.duong.identityservice.dto.request.LogoutRequest;
+import com.duong.identityservice.dto.request.*;
 import com.duong.identityservice.dto.response.AuthenticationResponse;
 import com.duong.identityservice.dto.response.IntrospectResponse;
 import com.duong.identityservice.service.AuthenticationService;
@@ -49,4 +46,15 @@ public class AuthenticationController {
                 .code(1000)
                 .build();
     }
+
+
+    @PostMapping("/refresh")
+    ApiResponse<AuthenticationResponse> authenticate(@RequestBody RefreshRequest request)
+            throws ParseException, JOSEException {
+        var result = authenticationService.refreshToken(request);
+        return ApiResponse.<AuthenticationResponse>builder()
+                .result(result)
+                .build();
+    }
+
 }
