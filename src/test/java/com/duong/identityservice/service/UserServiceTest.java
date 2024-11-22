@@ -13,10 +13,12 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.TestPropertySource;
 
 import static  org.junit.jupiter.api.Assertions.assertThrows;
 import java.time.LocalDate;
+import java.util.Optional;
 
 @SpringBootTest
 @TestPropertySource("/test.properties")
@@ -86,6 +88,33 @@ public class UserServiceTest {
 
         Assertions.assertThat(exception.getErrorCode().getCode()).isEqualTo(1002);
         Assertions.assertThat(exception.getMessage()).isEqualTo("User Existed!");
+    }
+
+    @Test
+    @WithMockUser(username = "john")
+    void getMyInfo_validRequest_success(){
+        Mockito.when(userRepository.findByUsername((ArgumentMatchers.anyString()))).thenReturn(Optional.of(user));
+
+        //WHEN
+        var response= userService.getMyInfo();
+
+        //THEN
+        Assertions.assertThat(response.getId()).isEqualTo("28ee99770832");
+        Assertions.assertThat(response.getUsername()).isEqualTo("john");
+    }
+
+    @Test
+    @WithMockUser(username = "john")
+    void getMyInfo_userNotFound_fail(){
+        Mockito.when(userRepository.findByUsername((ArgumentMatchers.anyString()))).thenReturn(Optional.ofNullable(null));
+
+        var exception =assertThrows(AppException.class, ()->{
+            userService.getMyInfo();
+        });
+
+        //THEN
+        Assertions.assertThat(exception.getErrorCode().getCode()).isEqualTo(1005);
+        Assertions.assertThat(exception.getMessage()).isEqualTo("User Not Existed!");
     }
 
 }
