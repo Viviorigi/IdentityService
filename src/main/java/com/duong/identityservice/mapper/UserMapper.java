@@ -1,12 +1,13 @@
 package com.duong.identityservice.mapper;
 
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
+
 import com.duong.identityservice.dto.request.UserCreationRequest;
 import com.duong.identityservice.dto.request.UserUpdateRequest;
 import com.duong.identityservice.dto.response.UserResponse;
 import com.duong.identityservice.entity.User;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
 
 @Mapper(componentModel = "spring")
 public interface UserMapper {
@@ -14,6 +15,6 @@ public interface UserMapper {
 
     UserResponse toUserResponse(User user);
 
-    @Mapping(target = "roles",ignore = true)
+    @Mapping(target = "roles", ignore = true)
     void updateUser(@MappingTarget User user, UserUpdateRequest request);
 }

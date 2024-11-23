@@ -1,10 +1,11 @@
 package com.duong.identityservice.dto.response;
 
+import java.util.Set;
+
 import com.duong.identityservice.entity.Permission;
+
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-
-import java.util.Set;
 
 @Data
 @NoArgsConstructor

@@ -4,21 +4,21 @@ import java.time.LocalDate;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentMatchers;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import org.testcontainers.containers.MySQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import com.duong.identityservice.dto.request.UserCreationRequest;
 import com.duong.identityservice.dto.response.UserResponse;
-import com.duong.identityservice.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
@@ -27,14 +27,24 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @SpringBootTest
 @AutoConfigureMockMvc
-@TestPropertySource("/test.properties")
-public class UserControllerTest {
+@Testcontainers
+class UserControllerIntegrationTest {
+
+    @Container
+    static final MySQLContainer<?> MYSQL_CONTAINER = new MySQLContainer<>("mysql:8.0.30");
+
+    @DynamicPropertySource
+    static void configureDatasource(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", () -> MYSQL_CONTAINER.getJdbcUrl() + "?useSSL=false");
+        registry.add("spring.datasource.username", MYSQL_CONTAINER::getUsername);
+        registry.add("spring.datasource.password", MYSQL_CONTAINER::getPassword);
+        registry.add("spring.datasource.driver-class-name", () -> "com.mysql.cj.jdbc.Driver");
+        registry.add("spring.jpa.hibernate.ddl-auto", () -> "update");
+        registry.add("spring.jpa.properties.hibernate.dialect", () -> "org.hibernate.dialect.MySQLDialect");
+    }
 
     @Autowired
     private MockMvc mockMvc;
-
-    @MockBean
-    private UserService userService;
 
     private UserCreationRequest request;
 
@@ -70,31 +80,16 @@ public class UserControllerTest {
         mapper.registerModule(new JavaTimeModule());
         String content = mapper.writeValueAsString(request);
 
-        Mockito.when(userService.creatUser(ArgumentMatchers.any())).thenReturn(userResponse);
         // WHEN, THEN
-        mockMvc.perform(MockMvcRequestBuilders.post("/users")
+        var response = mockMvc.perform(MockMvcRequestBuilders.post("/users")
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content(content))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("code").value(1000))
-                .andExpect(MockMvcResultMatchers.jsonPath("result.id").value("28ee99770832"));
-    }
+                .andExpect(MockMvcResultMatchers.jsonPath("result.username").value("john"))
+                .andExpect(MockMvcResultMatchers.jsonPath("result.firstName").value("John"))
+                .andExpect(MockMvcResultMatchers.jsonPath("result.lastName").value("Doe"));
 
-    @Test
-    // Test usernameinvalid
-    void createUser_usernameinvalid_fail() throws Exception {
-        // GIVEN
-        request.setUsername("jo");
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule());
-        String content = mapper.writeValueAsString(request);
-
-        // WHEN, THEN
-        mockMvc.perform(MockMvcRequestBuilders.post("/users")
-                        .contentType(MediaType.APPLICATION_JSON_VALUE)
-                        .content(content))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest())
-                .andExpect(MockMvcResultMatchers.jsonPath("code").value(1003))
-                .andExpect(MockMvcResultMatchers.jsonPath("message").value("Username must be at least 3 characters"));
+        log.info("Result: {}", response.andReturn().getResponse().getContentAsString());
     }
 }

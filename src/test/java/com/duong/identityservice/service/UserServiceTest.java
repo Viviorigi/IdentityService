@@ -1,10 +1,10 @@
 package com.duong.identityservice.service;
 
-import com.duong.identityservice.dto.request.UserCreationRequest;
-import com.duong.identityservice.dto.response.UserResponse;
-import com.duong.identityservice.entity.User;
-import com.duong.identityservice.exception.AppException;
-import com.duong.identityservice.repository.UserRepository;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import java.time.LocalDate;
+import java.util.Optional;
+
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,9 +16,11 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.TestPropertySource;
 
-import static  org.junit.jupiter.api.Assertions.assertThrows;
-import java.time.LocalDate;
-import java.util.Optional;
+import com.duong.identityservice.dto.request.UserCreationRequest;
+import com.duong.identityservice.dto.response.UserResponse;
+import com.duong.identityservice.entity.User;
+import com.duong.identityservice.exception.AppException;
+import com.duong.identityservice.repository.UserRepository;
 
 @SpringBootTest
 @TestPropertySource("/test.properties")
@@ -28,14 +30,15 @@ public class UserServiceTest {
 
     @MockBean
     private UserRepository userRepository;
+
     private UserCreationRequest request;
     private UserResponse userResponse;
     private User user;
     private LocalDate dob;
 
     @BeforeEach
-    void initData(){
-        dob=LocalDate.of(2000,1,1);
+    void initData() {
+        dob = LocalDate.of(2000, 1, 1);
         request = UserCreationRequest.builder()
                 .username("john")
                 .firstName("John")
@@ -52,7 +55,7 @@ public class UserServiceTest {
                 .dob(dob)
                 .build();
 
-        user= User.builder()
+        user = User.builder()
                 .id("28ee99770832")
                 .username("john")
                 .firstName("John")
@@ -62,27 +65,28 @@ public class UserServiceTest {
     }
 
     @Test
-    void createUser_validRequest_success(){
-        //GIVEN
-        Mockito.when(userRepository.existsByUsername(ArgumentMatchers.anyString())).thenReturn(false);
+    void createUser_validRequest_success() {
+        // GIVEN
+        Mockito.when(userRepository.existsByUsername(ArgumentMatchers.anyString()))
+                .thenReturn(false);
         Mockito.when(userRepository.save(ArgumentMatchers.any())).thenReturn(user);
 
-        //WHEN
-        var response= userService.creatUser(request);
+        // WHEN
+        var response = userService.creatUser(request);
 
-        //THEN
+        // THEN
         Assertions.assertThat(response.getId()).isEqualTo("28ee99770832");
         Assertions.assertThat(response.getUsername()).isEqualTo("john");
     }
 
     @Test
-    void createUser_userExists_fail(){
-        //GIVEN
-        Mockito.when(userRepository.existsByUsername(ArgumentMatchers.anyString())).thenReturn(true);
+    void createUser_userExists_fail() {
+        // GIVEN
+        Mockito.when(userRepository.existsByUsername(ArgumentMatchers.anyString()))
+                .thenReturn(true);
 
-
-        //WHEN
-        var exception =assertThrows(AppException.class, ()->{
+        // WHEN
+        var exception = assertThrows(AppException.class, () -> {
             userService.creatUser(request);
         });
 
@@ -92,29 +96,30 @@ public class UserServiceTest {
 
     @Test
     @WithMockUser(username = "john")
-    void getMyInfo_validRequest_success(){
-        Mockito.when(userRepository.findByUsername((ArgumentMatchers.anyString()))).thenReturn(Optional.of(user));
+    void getMyInfo_validRequest_success() {
+        Mockito.when(userRepository.findByUsername((ArgumentMatchers.anyString())))
+                .thenReturn(Optional.of(user));
 
-        //WHEN
-        var response= userService.getMyInfo();
+        // WHEN
+        var response = userService.getMyInfo();
 
-        //THEN
+        // THEN
         Assertions.assertThat(response.getId()).isEqualTo("28ee99770832");
         Assertions.assertThat(response.getUsername()).isEqualTo("john");
     }
 
     @Test
     @WithMockUser(username = "john")
-    void getMyInfo_userNotFound_fail(){
-        Mockito.when(userRepository.findByUsername((ArgumentMatchers.anyString()))).thenReturn(Optional.ofNullable(null));
+    void getMyInfo_userNotFound_fail() {
+        Mockito.when(userRepository.findByUsername((ArgumentMatchers.anyString())))
+                .thenReturn(Optional.ofNullable(null));
 
-        var exception =assertThrows(AppException.class, ()->{
+        var exception = assertThrows(AppException.class, () -> {
             userService.getMyInfo();
         });
 
-        //THEN
+        // THEN
         Assertions.assertThat(exception.getErrorCode().getCode()).isEqualTo(1005);
         Assertions.assertThat(exception.getMessage()).isEqualTo("User Not Existed!");
     }
-
 }

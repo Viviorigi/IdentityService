@@ -1,14 +1,13 @@
 package com.duong.identityservice.entity;
 
-
-import jakarta.persistence.*;
-import lombok.*;
-import lombok.experimental.FieldDefaults;
-
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.Set;
 
+import jakarta.persistence.*;
+
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 @Entity
 @Data
@@ -20,6 +19,7 @@ public class User implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     String id;
+
     String username;
     String password;
     String firstName;
@@ -28,6 +28,4 @@ public class User implements Serializable {
 
     @ManyToMany
     Set<Role> roles;
-
-
 }
