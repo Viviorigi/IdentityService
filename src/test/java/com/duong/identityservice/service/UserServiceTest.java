@@ -24,7 +24,7 @@ import com.duong.identityservice.repository.UserRepository;
 
 @SpringBootTest
 @TestPropertySource("/test.properties")
-public class UserServiceTest {
+class UserServiceTest {
     @Autowired
     private UserService userService;
 
