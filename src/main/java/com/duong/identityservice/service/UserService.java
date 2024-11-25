@@ -3,6 +3,9 @@ package com.duong.identityservice.service;
 import java.util.HashSet;
 import java.util.List;
 
+import com.duong.identityservice.constant.PredefinedRole;
+import com.duong.identityservice.entity.Role;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -14,7 +17,6 @@ import com.duong.identityservice.dto.request.UserCreationRequest;
 import com.duong.identityservice.dto.request.UserUpdateRequest;
 import com.duong.identityservice.dto.response.UserResponse;
 import com.duong.identityservice.entity.User;
-import com.duong.identityservice.enums.Role;
 import com.duong.identityservice.exception.AppException;
 import com.duong.identityservice.exception.ErrorCode;
 import com.duong.identityservice.mapper.UserMapper;
@@ -41,18 +43,23 @@ public class UserService {
     RoleRepository roleRepository;
 
     public UserResponse creatUser(UserCreationRequest request) {
-        log.info("Service: Create User");
-        if (userRepository.existsByUsername(request.getUsername())) {
-            throw new AppException(ErrorCode.USER_EXISTED);
-        }
+
         User user = userMapper.toUser(request);
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        HashSet<String> roles = new HashSet<>();
-        roles.add(Role.USER.name());
-        //        user.setRoles(roles);
 
-        return userMapper.toUserResponse(userRepository.save(user));
+        HashSet<Role> roles = new HashSet<>();
+        roleRepository.findById(PredefinedRole.USER_ROLE).ifPresent(roles::add);
+
+        user.setRoles(roles);
+
+        try {
+            user=userRepository.save(user);
+        } catch (DataIntegrityViolationException e) {
+            throw new AppException(ErrorCode.USER_EXISTED);
+        }
+
+        return userMapper.toUserResponse(user);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
