@@ -58,7 +58,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public CorsFilter corsFilter(){
+    public CorsFilter corsFilter() {
 
         CorsConfiguration corsConfiguration = new CorsConfiguration();
         corsConfiguration.addAllowedHeader("*");
@@ -67,7 +67,7 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", corsConfiguration);
 
-        return  new CorsFilter(source);
+        return new CorsFilter(source);
     }
 
     @Bean

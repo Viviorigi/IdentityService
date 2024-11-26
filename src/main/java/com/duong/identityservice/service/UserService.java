@@ -3,8 +3,6 @@ package com.duong.identityservice.service;
 import java.util.HashSet;
 import java.util.List;
 
-import com.duong.identityservice.constant.PredefinedRole;
-import com.duong.identityservice.entity.Role;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -13,9 +11,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.duong.identityservice.constant.PredefinedRole;
 import com.duong.identityservice.dto.request.UserCreationRequest;
 import com.duong.identityservice.dto.request.UserUpdateRequest;
 import com.duong.identityservice.dto.response.UserResponse;
+import com.duong.identityservice.entity.Role;
 import com.duong.identityservice.entity.User;
 import com.duong.identityservice.exception.AppException;
 import com.duong.identityservice.exception.ErrorCode;
@@ -54,7 +54,7 @@ public class UserService {
         user.setRoles(roles);
 
         try {
-            user=userRepository.save(user);
+            user = userRepository.save(user);
         } catch (DataIntegrityViolationException e) {
             throw new AppException(ErrorCode.USER_EXISTED);
         }
